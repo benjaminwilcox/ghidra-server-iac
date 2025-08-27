@@ -13,9 +13,9 @@ output "ghidra_client_instructions" {
   value = [
     "1. Open Ghidra on your VM",
     "2. Go to File → New Project → Shared Project...",
-    "3. Server: ${module.ghidra_server.public_ip}",
-    "4. Port: 13100",
-    "5. User: <username>",
+    "3. Server Name: ${module.ghidra_server.public_ip}",
+    "4. Port Number: 13100",
+    "5. User ID: <username>",
     "6. Password: changeme (you'll be asked to change it)"
   ]
 }

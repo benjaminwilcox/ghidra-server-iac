@@ -123,7 +123,7 @@ For a starter config, copy [terraform.tfvars.example](./terraform.tfvars.example
 
    - Server Name: `<ghidra_server_ip>`
    - Port Number: `13100`
-   - Users: the ones you set in `ghidra_users`
+   - User ID: the ones you set in `ghidra_users`
    - Password: `changeme` (**must be changed immediately after first login**).
 
 ## Troubleshooting
