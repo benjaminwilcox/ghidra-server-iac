@@ -54,7 +54,6 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 
    ```bash
     tofu init
-    tofu plan
     tofu apply   # type 'yes' when prompted
    ```
 
