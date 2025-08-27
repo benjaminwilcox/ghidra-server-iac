@@ -20,7 +20,8 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 - [Destroy](#destroy)
 - [Troubleshooting](#troubleshooting)
 - [Security notes](#security-notes)
-- [Protect your wallet](#protect-your-wallet-)
+- [Protect your wallet!!](#protect-your-wallet)
+- [Architecture](#architecture)
 
 ## Prerequisites
 
