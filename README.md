@@ -65,6 +65,59 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    tofu output
    ```
 
+## What it creates
+
+- An **IAM role** and instance profile for the EC2 server.
+- One **EC2 instance** using an Ubuntu AMI and `instance_type`.
+- A dedicated **Security Group** that allows:
+  - **TCP 13100–13102** (Ghidra server) only from the CIDRs you specify (`allowed_ghidra_cidrs`).
+- An **Elastic IP** to keep a static public IP across stop/starts:
+  - Outputs the static IP as public_ip.
+  - Note: idle/unattached EIPs cost $0.005/hr ($3.60/mo).
+- Cloud-init **user data** that:
+  - Installs Docker and dependencies.
+  - Builds and runs a Ghidra server container.
+  - Seeds user accounts from `ghidra_users`.
+  - Registers a `systemd` service for automatic startup.
+- An **AWS Budget** with email alerts, if `enable_budget = true`.
+
+**Outputs** (after apply)
+
+- `ghidra_server_ip` — Public IP address of the Ghidra server.
+- `ssm_shell` — Copy-pasteable SSM command to connect to your instance.
+- `ghidra_client_instructions` — Step-by-step instructions for connecting from the Ghidra GUI client.
+
+## Connect to the server
+
+1. **SSM** into the instance:
+
+   ```bash
+   aws ssm start-session --target <instance-id>
+   sudo su - ubuntu
+   ```
+
+2. Verify the service:
+
+   ```bash
+   sudo docker ps
+   sudo docker logs ghidra-server --tail=100
+   ```
+
+3. **Ghidra client** → **Server**
+
+   - Host: `<public_ip>`
+   - Port: `13100`
+   - Users: the ones you set in `ghidra_users`
+   - Password: `changeme` (**must be changed immediately after first login**).
+
+## Destroy
+
+```bash
+tofu destroy    # terraform destroy
+```
+
+This will terminate the instance and destroy all resources.
+
 ## Configuration
 
 ### Variables
@@ -121,62 +174,6 @@ monthly_budget_limit_usd  = 5
 billing_emails            = ["student@school.edu"]
 
 ```
-
-## Deploy
-
-```bash
-tofu init && tofu apply   # or: terraform init && terraform apply
-```
-
-**What it creates**
-
-- An **IAM role** and instance profile for the EC2 server.
-- One **EC2 instance** using an Ubuntu AMI and `instance_type`.
-- A dedicated **Security Group** that allows:
-  - **TCP 13100–13102** (Ghidra server) only from the CIDRs you specify (`allowed_ghidra_cidrs`).
-- Cloud-init **user data** that:
-  - Installs Docker and dependencies.
-  - Builds and runs a Ghidra server container.
-  - Seeds user accounts from `ghidra_users`.
-  - Registers a `systemd` service for automatic startup.
-- An **AWS Budget** with email alerts, if `enable_budget = true`.
-
-**Outputs** (after apply)
-
-- `ghidra_server_ip` — Public IP address of the Ghidra server.
-- `ssm_shell` — Copy-pasteable SSM command to connect to your instance.
-- `ghidra_client_instructions` — Step-by-step instructions for connecting from the Ghidra GUI client.
-
-## Connect to the server
-
-1. **SSM** into the instance:
-
-   ```bash
-   aws ssm start-session --target <instance-id>
-   sudo su - ubuntu
-   ```
-
-2. Verify the service:
-
-   ```bash
-   sudo docker ps
-   sudo docker logs ghidra-server --tail=100
-   ```
-
-3. **Ghidra client** → **Server**
-
-   - Host: `<public_ip>`
-   - Port: `13100`
-   - Users: the ones you set in `ghidra_users`
-   - Password: `changeme` (**must be changed immediately after first login**).
-
-## Destroy
-
-```bash
-tofu destroy    # terraform destroy
-```
-
-This will terminate the instance and destroy all resources.
 
 ## Troubleshooting
 
