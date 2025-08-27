@@ -1,0 +1,38 @@
+# copy this to terraform.tfvars and update with your values
+
+# ============================
+# AWS configuration
+# ============================
+aws_region = "us-east-1"
+
+# ============================
+# Project settings
+# ============================
+project_name = "cs6747-ghidra-server"  
+
+# ============================
+# EC2 configuration
+# ============================
+instance_type = "t2.micro"   # may be free tier eligible; valid options: t2.micro, t3.micro, or t3.small
+
+# ============================
+# Ghidra users
+# ============================
+# Space-separated list; these will be created in the server on first boot
+ghidra_users = "ben steve" # add your teammates
+
+# ============================
+# Network access
+# ============================
+# These lists define who can connect to Ghidra.
+# Find your current public IP: curl -4 ifconfig.me (run this in your VM)
+allowed_ghidra_cidrs = [
+  "X.X.X.X/32",  # add teammates' IPs if needed
+]
+
+# ============================
+# Budget configuration
+# ============================
+enable_budget             = true
+monthly_budget_limit_usd  = 5
+billing_emails            = ["student@school.edu"]
