@@ -183,7 +183,7 @@ This will terminate the instance and destroy all resources.
 
 **No valid credential sources found / no EC2 IMDS role found**
 
-- You’re not logged in to AWS locally. See [AWS credentials](#aws-credentials). Test with `aws sts get-caller-identity`.
+- You’re not logged in to AWS locally. Test with `aws sts get-caller-identity`.
 
 **Ghidra port unreachable**
 
