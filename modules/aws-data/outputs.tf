@@ -1,13 +1,3 @@
-output "account_id" {
-  description = "aws account id"
-  value       = data.aws_caller_identity.current.account_id
-}
-
-output "region" {
-  description = "current aws region"
-  value       = data.aws_region.current.name
-}
-
 output "vpc_id" {
   description = "default vpc id"
   value       = data.aws_vpc.default.id

@@ -4,11 +4,6 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  description = "public ip address of the ec2 instance"
-  value       = aws_instance.ghidra_server.public_ip
-}
-
-output "public_dns" {
-  description = "public dns name of the ec2 instance"
-  value       = aws_instance.ghidra_server.public_dns
+  description = "static public ip (elastic ip)"
+  value       = aws_eip.ghidra.public_ip
 }
