@@ -16,7 +16,6 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 - [Connect to the server](#connect-to-the-server)
 - [Troubleshooting](#troubleshooting)
 - [Security notes](#security-notes)
-- [Protect your wallet!!](#protect-your-wallet)
 - [Architecture](#architecture)
 
 ## Prerequisites
@@ -61,7 +60,7 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    tofu output
    ```
 
-6. If necessary, to terminate the instance and destroy all resources.
+6. If necessary, to terminate the instance and destroy all resources, including the elastic ip:
 
    ```bash
    tofu destroy
@@ -82,6 +81,10 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
   - Seeds user accounts from `ghidra_users`.
   - Registers a `systemd` service for automatic startup.
 - An **AWS Budget** with email alerts, if `enable_budget = true`.
+  - Sets a monthly USD limit.
+  - Sends email alerts when forceasted spend exceeds 80% and when actual spend exceeds 100%
+  - Budgets are account-wide.
+  - Budgets do not stop resources. You must still run `tofu destroy`.
 
 **Outputs** (after apply)
 
@@ -118,8 +121,8 @@ For a starter config, copy [terraform.tfvars.example](./terraform.tfvars.example
 
 3. **Ghidra client** → **Server**
 
-   - Host: `<public_ip>`
-   - Port: `13100`
+   - Server Name: `<ghidra_server_ip>`
+   - Port Number: `13100`
    - Users: the ones you set in `ghidra_users`
    - Password: `changeme` (**must be changed immediately after first login**).
 
@@ -142,24 +145,6 @@ For a starter config, copy [terraform.tfvars.example](./terraform.tfvars.example
 
 - Restrict CIDRs to only what you need.
 - Change the default password for seeded users immediately.
-
-## Protect your wallet!!
-
-Running AWS resources, even small ones, can cost money if left running.  
-This repo includes a **Budget module** that helps you avoid surprise AWS bills:
-
-- Sets a **monthly USD limit**.
-- Sends **email alerts** when:
-  - **Forecasted** spend exceeds **80%**.
-  - **Actual** spend exceeds **100%**.
-
-Notes:
-
-- Budgets are account-wide.
-
-- Data refreshes every few hours.
-
-- Budgets do not stop resources. You must still run `tofu destroy`.
 
 ## Architecture
 
