@@ -7,7 +7,6 @@ PROJECT_NAME="${project_name}"
 
 # logs
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-
 echo "Starting Ghidra server setup..."
 
 # update system
@@ -28,9 +27,8 @@ if ! systemctl is-active --quiet amazon-ssm-agent; then
 fi
 
 # install Docker
-apt-get install -y docker.io git curl wget unzip
-systemctl start docker
-systemctl enable docker
+apt-get install -y --no-install-recommends docker.io git curl wget unzip dnsutils
+systemctl enable --now docker
 usermod -aG docker ubuntu
 
 # create directories
@@ -80,7 +78,6 @@ set -e
 
 if [ "$1" = 'server' ]; then
   shift
-  export GHIDRA_PUBLIC_HOSTNAME=$${GHIDRA_PUBLIC_HOSTNAME:-$$(dig +short myip.opendns.com @resolver1.opendns.com)}
 
   GHIDRA_USERS=$${GHIDRA_USERS:-admin}
   if [ ! -e "/repos/users" ] && [ ! -z "$${GHIDRA_USERS}" ]; then
@@ -137,7 +134,10 @@ echo "Building Ghidra server Docker image..."
 docker build . -t "$PROJECT_NAME/ghidra-server:latest"
 
 # get public ip
-PUBLIC_IP=$(curl -s http://checkip.amazonaws.com || echo "127.0.0.1")
+PUBLIC_IP="$(
+  curl -s --max-time 2 http://169.254.169.254/latest/meta-data/public-ipv4 \
+  || echo "127.0.0.1"
+)"
 
 # run ghidra server container
 echo "Starting Ghidra server container..."
@@ -166,7 +166,8 @@ fi
 cat > /home/ubuntu/check-status.sh << 'EOF'
 #!/bin/bash
 echo "=== Ghidra Server Status ==="
-echo "Server IP: $(curl -s http://checkip.amazonaws.com)"
+IP="$(curl -s --max-time 2 http://169.254.169.254/latest/meta-data/public-ipv4 || echo unknown)"
+echo "Server IP: $IP"
 echo "Container Status:"
 docker ps --filter name=ghidra-server --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo ""
@@ -186,19 +187,21 @@ Requires=docker.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/docker start ghidra-server
+ExecStart=/usr/bin/docker start -a ghidra-server
 ExecStop=/usr/bin/docker stop ghidra-server
-ExecReload=/usr/bin/docker restart ghidra-server
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
+systemctl daemon-reload
 systemctl enable ghidra-server.service
 
 echo ""
 echo "Ghidra Server Setup Complete!"
+/home/ubuntu/check-status.sh || true
 echo "Server IP: $PUBLIC_IP"
 echo "Ghidra Port: 13100"
 echo "Users: $GHIDRA_USERS"
