@@ -47,7 +47,7 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 3. **Authenticate** to AWS:
 
    ```bash
-   aws configure --profile ghidra
+   aws configure
    ```
 
 4. **Plan & apply**:
