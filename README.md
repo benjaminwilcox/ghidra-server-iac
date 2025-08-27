@@ -45,7 +45,7 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    aws configure
    ```
 
-4. **Plan & apply**:
+4. **Init & apply**:
 
    ```bash
     tofu init
@@ -54,7 +54,7 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 
    > If using terraform, replace any `tofu` commands with `terraform`
 
-5. Grab the **outputs** after apply (public IP/DNS):
+5. Grab the **outputs** after apply (ghidra client instructions, ghidra server ip, ssm shell command):
 
    ```bash
    tofu output
