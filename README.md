@@ -160,7 +160,6 @@ tofu init && tofu apply   # or: terraform init && terraform apply
 2. Verify the service:
 
    ```bash
-   sudo systemctl status ghidra-server.service
    sudo docker ps
    sudo docker logs ghidra-server --tail=100
    ```
@@ -189,7 +188,7 @@ This will terminate the instance and destroy all resources.
 **Ghidra port unreachable**
 
 - Ensure Security Group allows **TCP 13100** from your client IP(s).
-- Check the service: `sudo systemctl status ghidra-server` and `sudo docker logs ghidra-server`.
+- Check to see if the server is running properly: `sudo docker ps` and `sudo docker logs ghidra-server`.
 
 **AMI not found**
 
