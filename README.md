@@ -11,13 +11,9 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
+- [What it creates](#what-it-creates)
 - [Configuration](#configuration)
-  - [Variables](#variables)
-  - [terraform.tfvars example](#terraformtfvars-example)
-  - [AWS credentials](#aws-credentials)
-- [Deploy](#deploy)
 - [Connect to the server](#connect-to-the-server)
-- [Destroy](#destroy)
 - [Troubleshooting](#troubleshooting)
 - [Security notes](#security-notes)
 - [Protect your wallet!!](#protect-your-wallet)
@@ -65,6 +61,12 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    tofu output
    ```
 
+6. If necessary, to terminate the instance and destroy all resources.
+
+   ```bash
+   tofu destroy
+   ```
+
 ## What it creates
 
 - An **IAM role** and instance profile for the EC2 server.
@@ -86,6 +88,17 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
 - `ghidra_server_ip` — Public IP address of the Ghidra server.
 - `ssm_shell` — Copy-pasteable SSM command to connect to your instance.
 - `ghidra_client_instructions` — Step-by-step instructions for connecting from the Ghidra GUI client.
+
+## Configuration
+
+The repo defines (at minimum) the following variables (see [variables.tf](./variables.tf) for details).
+For a starter config, copy [terraform.tfvars.example](./terraform.tfvars.example) → `terraform.tfvars` and edit the required fields below:
+
+- `ghidra_users` — add your and your teammate's names.
+
+- `allowed_ghidra_cidrs` — add your and your teammate's IPs.
+
+- `billing_emails` — your school email for AWS budget alerts.
 
 ## Connect to the server
 
@@ -109,71 +122,6 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    - Port: `13100`
    - Users: the ones you set in `ghidra_users`
    - Password: `changeme` (**must be changed immediately after first login**).
-
-## Destroy
-
-```bash
-tofu destroy    # terraform destroy
-```
-
-This will terminate the instance and destroy all resources.
-
-## Configuration
-
-### Variables
-
-The repo defines (at minimum) the following variables (see [variables.tf](./variables.tf) for details):
-
-- `aws_region` _(string)_ — AWS region to deploy into (default: `us-east-1`).
-- `project_name` _(string)_ — Prefix for resource naming and tagging (default: `"ghidra-server"`).
-- `instance_type` _(string)_ — EC2 instance type (`t2.micro`, `t3.micro`, or `t3.small`).
-- `ghidra_users` _(string)_ — **Space-separated** list of usernames to seed in the Ghidra server.
-- `allowed_ghidra_cidrs` _(list)_ — CIDRs allowed to connect to Ghidra client ports (13100–13102).
-- `enable_budget` _(bool)_ — Whether to enable a budget alarm (default: `true`).
-- `monthly_budget_limit_usd` _(number)_ — Monthly budget cap (USD).
-- `billing_emails` _(list)_ — Email addresses for budget notifications.
-
-### `terraform.tfvars` example
-
-```hcl
-# ============================
-# AWS configuration
-# ============================
-aws_region = "us-east-1"
-
-# ============================
-# Project settings
-# ============================
-project_name = "cs6747-ghidra-server"
-
-# ============================
-# EC2 configuration
-# ============================
-instance_type = "t2.micro"   # may be free tier eligible; valid options: t2.micro, t3.micro, or t3.small
-
-# ============================
-# Ghidra users
-# ============================
-# Space-separated list; these will be created in the server on first boot
-ghidra_users = "ben steve" # add your teammates
-
-# ============================
-# Network access
-# ============================
-# These lists define who can connect to Ghidra.
-# Find your current public IP: curl -4 ifconfig.me (run this in your VM)
-allowed_ghidra_cidrs = [
-  "X.X.X.X/32",  # add teammates' IPs if needed
-]
-
-# ============================
-# Budget configuration
-# ============================
-enable_budget             = true
-monthly_budget_limit_usd  = 5
-billing_emails            = ["student@school.edu"]
-
-```
 
 ## Troubleshooting
 
@@ -220,7 +168,7 @@ flowchart LR
   %% ===== Student side =====
   subgraph DEV["Student"]
     TFVARS["<code>terraform.tfvars</code>"]
-    GHIDRA_GUI["Ghidra Client<br/>(connects to EC2 public IP:13100–13102)"]
+    GHIDRA_GUI["Ghidra Client<br/>(connects to Elastic IP : 13100–13102)"]
     AWSCLI["AWS CLI v2<br/>(Session Manager shell)"]
   end
 
@@ -228,7 +176,7 @@ flowchart LR
   subgraph TF["OpenTofu / Terraform"]
     VARS["variables.tf"]
     MOD_SEC["module: security<br/>(Security Group)"]
-    MOD_SRV["module: ghidra-server<br/>(EC2, user_data, SSM Agent)"]
+    MOD_SRV["module: ghidra-server<br/>(EC2, user_data, SSM Agent, systemd)"]
     MOD_BUD["module: budget"]
     OUTS["outputs.tf"]
   end
@@ -236,8 +184,9 @@ flowchart LR
   %% ===== AWS resources =====
   subgraph AWS["AWS Account"]
     IAM["IAM Role + Instance Profile<br/>+ AmazonSSMManagedInstanceCore"]
-    SG["Security Group<br/>Ghidra: 13100–13102<br/>(from allowed_ghidra_cidrs)"]
-    EC2["EC2 (Ubuntu)<br/>Docker + Ghidra Server<br/>systemd service<br/>SSM Agent"]
+    SG["Security Group<br/>Ghidra: 13100–13102<br/>(from <code>allowed_ghidra_cidrs</code>)"]
+    EC2["EC2 (Ubuntu)<br/>Docker + Ghidra Server<br/>systemd starts container on boot<br/>SSM Agent"]
+    EIP["Elastic IP (static public IP)"]
     BUD["AWS Budgets<br/>(email alerts)"]
   end
 
@@ -253,11 +202,12 @@ flowchart LR
   MOD_SRV --> EC2
   MOD_BUD --> BUD
   SG --> EC2
+  EIP --> EC2
 
   %% How you connect
   AWSCLI -->|"SSM Session Shell"| EC2
-  GHIDRA_GUI -->|"TCP 13100–13102"| EC2
+  GHIDRA_GUI -->|"TCP 13100–13102 to EIP"| EC2
 
   %% Outputs back to user
-  OUTS -->|"ghidra_server_ip<br/>ssm_shell<br/>ghidra_client_instructions"| DEV
+  OUTS -->|"public_ip (EIP)<br/>ssm_shell<br/>ghidra_client_instructions"| DEV
 ```
