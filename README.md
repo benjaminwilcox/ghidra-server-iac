@@ -222,7 +222,7 @@ Notes:
 ```mermaid
 flowchart LR
   %% ===== Student side =====
-  subgraph DEV["Student Laptop"]
+  subgraph DEV["Student"]
     TFVARS["<code>terraform.tfvars</code>"]
     GHIDRA_GUI["Ghidra Client<br/>(connects to EC2 public IP:13100–13102)"]
     AWSCLI["AWS CLI v2<br/>(Session Manager shell)"]
@@ -239,7 +239,7 @@ flowchart LR
 
   %% ===== AWS resources =====
   subgraph AWS["AWS Account"]
-    IAM["IAM Role + Instance Profile<br/>(+ AmazonSSMManagedInstanceCore)"]
+    IAM["IAM Role + Instance Profile<br/>+ AmazonSSMManagedInstanceCore"]
     SG["Security Group<br/>Ghidra: 13100–13102<br/>(from allowed_ghidra_cidrs)"]
     EC2["EC2 (Ubuntu)<br/>Docker + Ghidra Server<br/>systemd service<br/>SSM Agent"]
     BUD["AWS Budgets<br/>(email alerts)"]
