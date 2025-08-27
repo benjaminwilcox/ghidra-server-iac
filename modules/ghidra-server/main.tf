@@ -68,3 +68,15 @@ resource "aws_instance" "ghidra_server" {
     create_before_destroy = true
   }
 }
+
+# elastic ip - to prevent issues when instances are stopped/started and get allocated a new ip
+resource "aws_eip" "ghidra" {
+  instance = aws_instance.ghidra_server.id
+
+  tags = { 
+    Name = "${var.project_name}-eip"
+    ManagedBy = "terraform"
+    Purpose   = "cs6747"
+  } 
+}
+

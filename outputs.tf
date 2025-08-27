@@ -1,5 +1,5 @@
 output "ghidra_server_ip" {
-  description = "public ip address of the ghidra server"
+  description = "public ip address of the ghidra server (elastic ip)"
   value       = module.ghidra_server.public_ip
 }
 
@@ -7,7 +7,6 @@ output "ssm_shell" {
   description = "start an ssm shell on the instance"
   value       = "aws ssm start-session --target ${module.ghidra_server.instance_id}"
 }
-
 
 output "ghidra_client_instructions" {
   description = "instructions for connecting with ghidra client"
