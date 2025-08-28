@@ -66,20 +66,20 @@ Credit to [Cryptophobia](https://github.com/Cryptophobia/docker-ghidra-server-aw
    tofu destroy
    ```
 
-## What it creates
+## What it creates (7 resources)
 
-- An **IAM role** and instance profile for the EC2 server.
+- An **IAM role**, **instance profile**, and **IAM role policy attachment** for the EC2 server.
 - One **EC2 instance** using an Ubuntu AMI and `instance_type`.
+  - Cloud-init **user data** that:
+    - Installs Docker and dependencies.
+    - Builds and runs a Ghidra server container.
+    - Seeds user accounts from `ghidra_users`.
+    - Registers a `systemd` service for automatic startup.
 - A dedicated **Security Group** that allows:
   - **TCP 13100–13102** (Ghidra server) only from the CIDRs you specify (`allowed_ghidra_cidrs`).
 - An **Elastic IP** to keep a static public IP across stop/starts:
   - Outputs the static IP as public_ip.
   - Note: idle/unattached EIPs cost $0.005/hr ($3.60/mo).
-- Cloud-init **user data** that:
-  - Installs Docker and dependencies.
-  - Builds and runs a Ghidra server container.
-  - Seeds user accounts from `ghidra_users`.
-  - Registers a `systemd` service for automatic startup.
 - An **AWS Budget** with email alerts, if `enable_budget = true`.
   - Sets a monthly USD limit.
   - Sends email alerts when forceasted spend exceeds 80% and when actual spend exceeds 100%
